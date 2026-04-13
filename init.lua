@@ -799,27 +799,19 @@ require('lazy').setup({
     -- change the command in the config to whatever the name of that colorscheme is.
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'catppuccin/nvim',
+    'folke/tokyonight.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     config = function()
-      ---@diagnostic disable-next-line: missing-fields
-      require('catppuccin').setup {
-        flavour = 'macchiato',
-        transparent_background = true,
+      require('tokyonight').setup {
+        style = 'night',
+        transparent = true,
         styles = {
-          comments = { 'italic' },
+          comments = { italic = true },
         },
       }
 
       -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      vim.cmd.colorscheme 'catppuccin'
-      -- vim.cmd [[
-      --   highlight Normal guibg=none
-      --   highlight NonText guibg=none
-      --   highlight Normal ctermbg=none
-      --   highlight NonText ctermbg=none
-      -- ]]
+      vim.cmd.colorscheme 'tokyonight'
     end,
   },
 
