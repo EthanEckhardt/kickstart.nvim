@@ -109,10 +109,10 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 --  Use CTRL+<hjkl> to switch between windows
 --
 --  See `:help wincmd` for a list of all window commands
-vim.keymap.set('n', '<A-Left>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-vim.keymap.set('n', '<A-Right>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-vim.keymap.set('n', '<A-Down>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-vim.keymap.set('n', '<A-Up>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+-- vim.keymap.set('n', '<A-Left>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+-- vim.keymap.set('n', '<A-Right>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+-- vim.keymap.set('n', '<A-Down>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+-- vim.keymap.set('n', '<A-Up>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
@@ -185,6 +185,24 @@ require('lazy').setup({
   -- Here is a more advanced example where we pass configuration
   -- options to `gitsigns.nvim`.
   --
+  {
+    'christoomey/vim-tmux-navigator',
+    cmd = {
+      'TmuxNavigateLeft',
+      'TmuxNavigateDown',
+      'TmuxNavigateUp',
+      'TmuxNavigateRight',
+      'TmuxNavigatePrevious',
+      'TmuxNavigatorProcessList',
+    },
+    keys = {
+      { '<c-Left>', '<cmd>TmuxNavigateLeft<cr>' },
+      { '<c-Down>', '<cmd>TmuxNavigateDown<cr>' },
+      { '<c-Up>', '<cmd>TmuxNavigateUp<cr>' },
+      { '<c-Right>', '<cmd>TmuxNavigateRight<cr>' },
+      { '<c-\\>', '<cmd>TmuxNavigatePrevious<cr>' },
+    },
+  },
   -- See `:help gitsigns` to understand what the configuration keys do
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -480,7 +498,7 @@ require('lazy').setup({
 
           -- Fuzzy find all the symbols in your current document.
           --  Symbols are things like variables, functions, types, etc.
-          map('gO', require('telescope.builtin').lsp_document_symbols, 'Open Document Symbols')
+          map('go', require('telescope.builtin').lsp_document_symbols, 'Open Document Symbols')
 
           -- Fuzzy find all the symbols in your current workspace.
           --  Similar to document symbols, except searches over your entire project.
@@ -601,6 +619,7 @@ require('lazy').setup({
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         ts_ls = {},
+        marksman = {},
 
         lua_ls = {
           -- cmd = { ... },
@@ -652,6 +671,53 @@ require('lazy').setup({
         },
       }
     end,
+  },
+  {
+    'folke/flash.nvim',
+    event = 'VeryLazy',
+    opts = {},
+    keys = {
+      {
+        's',
+        mode = { 'n', 'x', 'o' },
+        function()
+          require('flash').jump()
+        end,
+        desc = 'Flash',
+      },
+      {
+        'S',
+        mode = { 'n', 'x', 'o' },
+        function()
+          require('flash').treesitter()
+        end,
+        desc = 'Flash Treesitter',
+      },
+      {
+        'r',
+        mode = 'o',
+        function()
+          require('flash').remote()
+        end,
+        desc = 'Remote Flash',
+      },
+      {
+        'R',
+        mode = { 'o', 'x' },
+        function()
+          require('flash').treesitter_search()
+        end,
+        desc = 'Treesitter Search',
+      },
+      {
+        '<c-s>',
+        mode = { 'c' },
+        function()
+          require('flash').toggle()
+        end,
+        desc = 'Toggle Flash Search',
+      },
+    },
   },
 
   { -- Autoformat
@@ -794,27 +860,32 @@ require('lazy').setup({
     },
   },
 
-  { -- You can easily change to a different colorscheme.
-    -- Change the name of the colorscheme plugin below, and then
-    -- change the command in the config to whatever the name of that colorscheme is.
-    --
-    -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
+  { -- Colorscheme driven by the dotfiles $DOTFILES_THEME variable.
+    -- Single source of truth lives in dotfiles/env/theme.sh and is applied by
+    -- dotfiles/scripts/theme.sh (`theme <name>`). Both themes are installed here;
+    -- the active one is chosen at startup. Add a theme with another elseif branch.
+    'ellisonleao/gruvbox.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
+    dependencies = { 'folke/tokyonight.nvim' },
     config = function()
-      require('tokyonight').setup {
-        style = 'night',
-        transparent = true,
-        styles = {
-          comments = { italic = true },
-        },
-      }
-
-      -- Load the colorscheme here.
-      vim.cmd.colorscheme 'tokyonight'
+      local theme = vim.env.DOTFILES_THEME or 'gruvbox'
+      if theme == 'tokyonight' then
+        require('tokyonight').setup {
+          style = 'night',
+          transparent = true,
+          styles = {
+            comments = { italic = true },
+          },
+        }
+        vim.cmd.colorscheme 'tokyonight'
+      else
+        require('gruvbox').setup {
+          transparent_mode = true,
+        }
+        vim.cmd.colorscheme 'gruvbox'
+      end
     end,
   },
-
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
@@ -890,7 +961,7 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug',
+  require 'kickstart.plugins.debug',
   require 'kickstart.plugins.indent_line',
   require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
